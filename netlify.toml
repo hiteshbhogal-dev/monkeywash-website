@@ -1,6 +1,7 @@
 [build]
   base = "monkeywash-selfhost"
-  command = "npm run build"
+  command = "echo \"Static HTML site ready\""
+  publish = "site"
 
 [build.environment]
   NODE_VERSION = "22"
