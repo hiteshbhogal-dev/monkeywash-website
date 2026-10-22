@@ -1,0 +1,68 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  PICKED_UP
+  IN_PROGRESS
+  READY_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+}
+enum ServiceType {
+  WASH_FOLD
+  DRY_CLEANING
+  IRONING
+  SHOE_CLEANING
+  HOME_LINEN
+  OTHER
+}
+model Booking {
+  id                  String              @id @default(cuid())
+  reference           String              @unique
+  customerName        String
+  phone               String
+  email               String?
+  service             ServiceType
+  itemsDescription    String?
+  pickupAddress       String
+  area                String
+  pickupDate          DateTime
+  pickupSlot          String
+  deliveryPreference  String              @default("standard")
+  specialInstructions String?
+  estimatedTotal      Int?
+  status              BookingStatus       @default(PENDING)
+  notificationStatus  String              @default("NOT_CONFIGURED")
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  statusEvents        BookingStatusEvent[]
+  @@index([phone, createdAt])
+  @@index([pickupDate, pickupSlot])
+  @@index([status, createdAt])
+}
+model BookingStatusEvent {
+  id        String        @id @default(cuid())
+  bookingId String
+  status    BookingStatus
+  note      String?
+  createdAt DateTime      @default(now())
+  booking   Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  @@index([bookingId, createdAt])
+}
+model ServicePrice {
+  id          String      @id @default(cuid())
+  service     ServiceType @unique
+  label       String
+  description String
+  priceFrom   Int?
+  unit        String      @default("per order")
+  active      Boolean     @default(true)
+  updatedAt   DateTime    @updatedAt
+}

@@ -1,0 +1,34 @@
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: monkeywash
+      POSTGRES_USER: monkeywash
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes: [monkeywash-db:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U monkeywash -d monkeywash"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  web:
+    build: .
+    restart: unless-stopped
+    ports: ["3000:3000"]
+    environment:
+      DATABASE_URL: postgresql://monkeywash:${POSTGRES_PASSWORD}@db:5432/monkeywash?schema=public
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL}
+      NEXT_PUBLIC_BUSINESS_NAME: ${NEXT_PUBLIC_BUSINESS_NAME:-Monkey Wash}
+      NEXT_PUBLIC_BUSINESS_PHONE: ${NEXT_PUBLIC_BUSINESS_PHONE:-}
+      NEXT_PUBLIC_WHATSAPP_NUMBER: ${NEXT_PUBLIC_WHATSAPP_NUMBER:-}
+      BUSINESS_TIMEZONE: ${BUSINESS_TIMEZONE:-Asia/Kolkata}
+      BOOKING_ADMIN_TOKEN: ${BOOKING_ADMIN_TOKEN}
+      WHATSAPP_ACCESS_TOKEN: ${WHATSAPP_ACCESS_TOKEN:-}
+      WHATSAPP_PHONE_NUMBER_ID: ${WHATSAPP_PHONE_NUMBER_ID:-}
+      WHATSAPP_OWNER_RECIPIENT: ${WHATSAPP_OWNER_RECIPIENT:-}
+      WHATSAPP_GRAPH_API_VERSION: ${WHATSAPP_GRAPH_API_VERSION:-v22.0}
+    depends_on:
+      db: {condition: service_healthy}
+volumes:
+  monkeywash-db:
